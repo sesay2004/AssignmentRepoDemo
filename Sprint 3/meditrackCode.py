@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import Listbox, messagebox 
+from tkinter import Listbox, messagebox
 from tkinter import ttk
 from datetime import datetime, timedelta
 
@@ -19,7 +19,7 @@ users = {
             }
         ]
     }
-} 
+}
 
 #Global variables
 current_user = None
@@ -70,7 +70,7 @@ def login():
     username = userEntry.get().strip()
     password = passEntry.get().strip()
     print("attempted login:", username, password)
-    
+   
     if username in users and users[username]["password"] == password:
         current_user = username
         messagebox.showinfo(title = "Login Successful", message = f"Welcome back, {username}!")
@@ -79,19 +79,19 @@ def login():
         updateMedListbox()
     else:
         messagebox.showinfo(title = "Login Failed", message = "Invalid username or password")
-            
+           
 def signUp():
     mainWindow.withdraw()
     signIn.deiconify()
-    
-def createUser():   
+   
+def createUser():  
     username = signUserEntry.get().strip()
     password = signPassEntry.get().strip()
     confirmPass = passRentry.get().strip()
-    
+   
     if username in users:
         messagebox.showinfo(title = "Sign up failed", message = "Account with this user already exists")
-        
+       
     elif password != confirmPass:
          messagebox.showinfo(title = "Invalid Password", message = "Passwords don't match")
          
@@ -115,21 +115,21 @@ def addMedication():
     if not med_input:
         messagebox.showinfo(title="Missing input", message="Medication cannot be empty!")
         return
-    
+   
     if not dosage_input:
         messagebox.showinfo(title="Missing input", message="Please enter the dosage")
         return
-    
+   
     if not current_schedule["time"]:
         messagebox.showinfo(title="Missing input", message="Please set a schedule for the medication")
         return
-    
+   
     if parse_time(current_schedule["time"]) is None:
         messagebox.showinfo(title="Invalid Time Format", message="Please click 'Set Schedule' and choose a time and occurrence for the medication")
         return
 
     #normalize medication name for duplicate check
-    med_norm = med_input.casefold() 
+    med_norm = med_input.casefold()
 
     #duplicate check
     is_duplicate = any(med.get("name", "").strip().casefold() == med_norm
@@ -147,7 +147,7 @@ def addMedication():
         "occurrence": current_schedule["occurrence"],
         "days": current_schedule["days"],
     }
-    
+   
     user_medications.append(new_med)
     users[current_user]["medications"] = user_medications
 
@@ -186,7 +186,7 @@ def confirmRemoveMedication():
 
     if not selection or selection[0] == 0:
         return
-    
+   
     med_index = selection[0] - 1
     med_name = users[current_user]["medications"][med_index]["name"]
 
@@ -202,7 +202,7 @@ def updateMedListbox():
     medListbox.delete(0, tk.END)
 
     medListbox.insert(tk.END, "Name | Dose | Time | Symptoms")
-    medListbox.itemconfig(0, {'fg': 'white', 'bg': 'black'}) 
+    medListbox.itemconfig(0, {'fg': 'white', 'bg': 'black'})
 
     user_medications = users[current_user].get("medications", [])
     for med in user_medications:
@@ -231,7 +231,7 @@ def seconds_until(time_str):
             medDate += timedelta(days=1) #schedule for next day if time has passed
 
         return int((medDate - now).total_seconds()*1000) #convert to milliseconds
-    
+   
     except ValueError:
         return None
 
@@ -263,24 +263,26 @@ def scheduleReminder(username, med):
         popup.title("Medication Reminder")
         popup.geometry("300x150")
         tk.Label(popup, text=f"Time to take {med['name']} ({med['dosage']})", font=font1).pack(pady=20)
-        
+       
         #function to delay the reminder popup
         def waitButton():
             popup.destroy()
-        
-            #delaying the reminder for 1 minute 
+       
+            #delaying the reminder for 1 minute
             waitDelay = 60*1000
-            remindID = dashboard.after(waitDelay, showReminder)
+            # <CHANGE> Changed showReminder to notify to call the correct function
+            remindID = dashboard.after(waitDelay, notify)
             reminders[key] = remindID
-            
+           
         def okButton():
             popup.destroy()
             scheduleReminder(username, med)
-            
+           
         tk.Button(popup, text="OK", command=okButton).pack(pady=10)
         tk.Button(popup, text = "Wait (1min)", command = waitButton).pack(pady = 5)    
 
-    remindID = dashboard.after(delay_ms, showReminder) #schedule the reminder
+    # <CHANGE> Changed showReminder to notify to call the correct function
+    remindID = dashboard.after(delay_ms, notify) #schedule the reminder
     reminders[key] = remindID #store the reminder ID
     print(f"[DEBUG] Scheduled reminder for {username} to take {med['name']} in {delay_ms/1000:.2f} seconds.")
 
@@ -332,11 +334,11 @@ def open_scheduler(on_done):
     ampm_box.place(x=195, y=20)
 
     tk.Label(window, text="Occurrrence:", bg="#F0F0F0", font=font1).place(x=20, y=70)
-    
+   
     # occurrence selection combobox
     occurrenceVar = tk.StringVar(value="Daily")
-    occurrence_box = ttk.Combobox(window, textvariable=occurrenceVar, 
-                                  values=["Once", "Daily", "Monthly", "Custom days"], 
+    occurrence_box = ttk.Combobox(window, textvariable=occurrenceVar,
+                                  values=["Once", "Daily", "Monthly", "Custom days"],
                                   state="readonly",
                                   width=15)
     occurrence_box.place(x=120, y=70)
@@ -369,14 +371,16 @@ def open_scheduler(on_done):
 
         on_done(time_str, occurrence, selected_days)
         window.destroy()
-    
+   
     def on_cancel():
         window.destroy()
-    
+   
     tk.Button(window, text="Save", bg="#F5D5F7", font=font1, command=on_save).place(x=70, y=200, width=80, height=30)
     tk.Button(window, text="Cancel", bg="#F5D5F7", font=font1, command=on_cancel).place(x=170, y=200, width=80, height=30)
 
 
+
+# ... existing code ...
 
 
 
@@ -453,7 +457,7 @@ passEntry.place(x=130, y= 190)
 signUserEntry.place(x=195, y= 150)
 signPassEntry.place(x=195, y= 190)
 passRentry.place(x=195,y=230)
-signUserEntryL.place(x=30, y=150) 
+signUserEntryL.place(x=30, y=150)
 signPassEntryL.place(x=30, y=190)
 passRentryL.place(x=30, y=230)
 createUserButton.place(x = 130, y= 300)
@@ -488,5 +492,5 @@ def onMedSelect(event):
 
 medListbox.bind('<<ListboxSelect>>', onMedSelect)
 
-    
+   
 mainWindow.mainloop()
